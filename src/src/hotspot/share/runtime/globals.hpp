@@ -2671,7 +2671,32 @@ define_pd_global(uint64_t,MaxRAM,                    1ULL*G);
           "Start flight recording with options"))                           \
                                                                             \
   experimental(bool, UseFastUnorderedTimeStamps, false,                     \
-          "Use platform unstable time where supported for timestamps only")
+          "Use platform unstable time where supported for timestamps only") \
+                                                                            \
+  product(ccstr, ZlibImplementation, "bundled",                             \
+          "Zlib implementation. One of \"bundled\", \"system\" or"          \
+          "\"cloudflare\". If the JDK was configured with "                 \
+          "\"--with-zlib=system\", \"bundled\" and \"system\" will be the " \
+          "same. \"cloudflare\" is only available if the JDK was "          \
+          "configured with \"--with-extra-zlib=cloudflare\".")              \
+                                                                            \
+  product(ccstr, ZlibImplementationInflate, "bundled",                      \
+          "Zlib Inflate implementation. One of \"bundled\", \"system\", "   \
+          "\"cloudflare\" or \"chromium\". If the JDK was configured with " \
+          "\"--with-zlib=system\", \"bundled\" and \"system\" will be the " \
+          "same. \"cloudflare\" is only available if the JDK was "          \
+          "configured with \"--with-extra-zlib=cloudflare\". "              \
+          "\"chromium\" is only available if the JDK was configured "       \
+          "with \"--with-extra-zlib=chromium\".")                           \
+                                                                            \
+  product(ccstr, ZlibImplementationDeflate, "bundled",                      \
+          "Zlib deflate implementation. One of \"bundled\", \"system\", "   \
+          "\"cloudflare\" or \"chromium\". If the JDK was configured with " \
+          "\"--with-zlib=system\", \"bundled\" and \"system\" will be the " \
+          "same. \"cloudflare\" is only available if the JDK was "          \
+          "configured with \"--with-extra-zlib=cloudflare\". "              \
+          "\"chromium\" is only available if the JDK was configured "       \
+          "with \"--with-extra-zlib=chromium\".")
 
 #define VM_FLAGS(develop,                                                   \
                  develop_pd,                                                \
