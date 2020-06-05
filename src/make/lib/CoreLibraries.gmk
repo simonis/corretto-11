@@ -136,8 +136,11 @@ ifeq ($(USE_ZLIB_CLOUDFLARE), true)
   ifeq ($(OPENJDK_TARGET_OS), linux)
     ifeq ($(OPENJDK_TARGET_CPU), x86_64)
       # Availability of SSE4.2/PCLMUL will be checked at runtime in 'libzip/dispatch.c'
-      ZLIB_CLOUDFLARE_CFLAGS := -mpclmul -DHAS_SSE42 -msse4.2 \
-          -Wno-error=sign-compare -Wno-error=implicit-fallthrough -Wno-error=format
+      ZLIB_CLOUDFLARE_CFLAGS := -mpclmul -DHAS_SSE42 -msse4.2
+    endif
+    ifeq ($(OPENJDK_TARGET_CPU), aarch64)
+      # Availability of NEON/CRC support will be checked at runtime in 'libzip/dispatch.c'
+      ZLIB_CLOUDFLARE_CFLAGS := -march=armv8-a+crc
     endif
   endif
 
@@ -151,6 +154,7 @@ ifeq ($(USE_ZLIB_CLOUDFLARE), true)
       CFLAGS := $(CFLAGS_JDKLIB) $(ZLIB_CLOUDFLARE_CFLAGS), \
       CFLAGS_unix := -UDEBUG, \
       DISABLED_WARNINGS_microsoft := 4101 4244 4018, \
+      DISABLED_WARNINGS_gcc := sign-compare implicit-fallthrough format, \
       ARFLAGS := $(ARFLAGS), \
       OBJECT_DIR := $(SUPPORT_OUTPUTDIR)/native/$(MODULE)/zlib-cloudflare, \
       DEBUG_SYMBOLS := $(DEBUG_ALL_BINARIES)))
@@ -169,16 +173,21 @@ ifeq ($(USE_ZLIB_CHROMIUM), true)
   ifeq ($(OPENJDK_TARGET_OS), linux)
     ifeq ($(OPENJDK_TARGET_CPU), x86_64)
       # Availability of SSE4.2/PCLMUL will be checked at runtime in 'libzip/dispatch.c'
-      ZLIB_CHROMIUM_CFLAGS := -DADLER32_SIMD_SSSE3 -DINFLATE_CHUNK_SIMD_SSE2 \
-          -DCRC32_SIMD_SSE42_PCLMUL -msse4.2 -mpclmul \
-          -Wno-error=implicit-fallthrough -Wno-error=parentheses
+      ZLIB_CHROMIUM_CFLAGS := -DX86_NOT_WINDOWS -msse4.2 -mpclmul \
+          -DCRC32_SIMD_SSE42_PCLMUL -DADLER32_SIMD_SSSE3 -DINFLATE_CHUNK_SIMD_SSE2
+    endif
+    ifeq ($(OPENJDK_TARGET_CPU), aarch64)
+      # Availability of NEON/CRC support will be checked at runtime in 'libzip/dispatch.c'
+      ZLIB_CHROMIUM_CFLAGS := -DARMV8_OS_LINUX -march=armv8-a+crc \
+          -DCRC32_ARMV8_CRC32 -DADLER32_SIMD_NEON -DINFLATE_CHUNK_SIMD_NEON
+      ZLIB_CHROMIUM_EXCLUDES := crc_folding.c fill_window_sse.c
     endif
   endif
   ifeq ($(OPENJDK_TARGET_OS), windows)
     ifeq ($(OPENJDK_TARGET_CPU), x86_64)
       # Availability of SSE4.2/PCLMUL will be checked at runtime in 'java/util/zip/dispatch.c'
-      ZLIB_CHROMIUM_CFLAGS := -DADLER32_SIMD_SSSE3 -DINFLATE_CHUNK_SIMD_SSE2 \
-          -DCRC32_SIMD_SSE42_PCLMUL -DX86_WINDOWS
+      ZLIB_CHROMIUM_CFLAGS := -DX86_WINDOWS \
+          -DCRC32_SIMD_SSE42_PCLMUL -DADLER32_SIMD_SSSE3 -DINFLATE_CHUNK_SIMD_SSE2
     endif
   endif
 
@@ -187,13 +196,14 @@ ifeq ($(USE_ZLIB_CHROMIUM), true)
       TYPE := STATIC_LIBRARY, \
       OUTPUT_DIR := $(SUPPORT_OUTPUTDIR)/native/$(MODULE)/zlib-chromium, \
       SRC := $(TOPDIR)/src/java.base/share/native/libzip/zlib-chromium, \
+      EXCLUDE_FILES := $(ZLIB_CHROMIUM_EXCLUDES), \
       LANG := C, \
       OPTIMIZATION := HIGH, \
       CFLAGS := $(CFLAGS_JDKLIB) \
           -I$(TOPDIR)/src/java.base/share/native/libzip/zlib-chromium \
           -DINFLATE_CHUNK_READ_64LE -DUNALIGNED_OK $(ZLIB_CHROMIUM_CFLAGS), \
-      CFLAGS_unix := -DX86_NOT_WINDOWS, \
       DISABLED_WARNINGS_microsoft := 4244 4267, \
+      DISABLED_WARNINGS_gcc := implicit-fallthrough parentheses, \
       ARFLAGS := $(ARFLAGS), \
       OBJECT_DIR := $(SUPPORT_OUTPUTDIR)/native/$(MODULE)/zlib-chromium, \
       DEBUG_SYMBOLS := $(DEBUG_ALL_BINARIES)))
