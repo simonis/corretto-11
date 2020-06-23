@@ -56,7 +56,6 @@
 #include "prims/jvm_misc.hpp"
 #include "runtime/arguments.hpp"
 #include "runtime/compilationPolicy.hpp"
-#include "runtime/globals_extension.hpp"
 #include "runtime/handles.hpp"
 #include "runtime/handles.inline.hpp"
 #include "runtime/init.hpp"
@@ -1185,14 +1184,17 @@ void ClassLoader::load_zip_library() {
   }
 
   if (ZipSwitchImplementation != NULL) {
-    if (!FLAG_IS_DEFAULT(ZlibImplementation)) {
-      ZipSwitchImplementation(ZlibImplementation, "ALL");
+    const char *implementation = Arguments::get_property("com.amazon.corretto.zlib.implementation");
+    if (implementation != NULL) {
+      ZipSwitchImplementation(implementation, "ALL");
     }
-    if (!FLAG_IS_DEFAULT(ZlibImplementationInflate)) {
-      ZipSwitchImplementation(ZlibImplementationInflate, "INFLATE");
+    const char *inflate = Arguments::get_property("com.amazon.corretto.zlib.implementation.inflate");
+    if (inflate != NULL) {
+      ZipSwitchImplementation(inflate, "INFLATE");
     }
-    if (!FLAG_IS_DEFAULT(ZlibImplementationDeflate)) {
-      ZipSwitchImplementation(ZlibImplementationDeflate, "DEFLATE");
+    const char *deflate = Arguments::get_property("com.amazon.corretto.zlib.implementation.deflate");
+    if (deflate != NULL) {
+      ZipSwitchImplementation(deflate, "DEFLATE");
     }
   }
   // Lookup canonicalize entry in libjava.dll
